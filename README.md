@@ -61,3 +61,7 @@ pnpm dev
 ```
 
 For more commands, please navigate to the corresponding component.
+
+
+## How to use the application
+Refer to the [User Documentation](./doc/)
