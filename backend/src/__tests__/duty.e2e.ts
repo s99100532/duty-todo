@@ -23,37 +23,23 @@ describe("Get Duty", () => {
       testDuty.name
     );
 
-    const resp = await request(app).get(`/duty/${result.id}`).expect(200);
+    const resp = await request(app).get(`/duties?pageSize=1`).expect(200);
 
     await expect(resp.body).toMatchObject({
       success: true,
       message: "",
       data: {
-        ...testDuty,
-        id: result.id,
+        items: [
+          {
+            ...testDuty,
+            id: result.id,
+            created_at: expect.stringContaining("Z"),
+          },
+        ],
+        pagination: {
+          cursor: result.id,
+        },
       },
-    });
-  });
-
-  it("should return error for invalid id", async () => {
-    const invalidID = "123457";
-    const resp = await request(app).get(`/duty/${invalidID}`).expect(200);
-
-    await expect(resp.body).toMatchObject({
-      message: ErrorMessage.INVALID_ID,
-      success: false,
-      data: null,
-    });
-  });
-
-  it("should return error for id not found", async () => {
-    const nonexistID = crypto.randomUUID();
-    const resp = await request(app).get(`/duty/${nonexistID}`).expect(200);
-
-    await expect(resp.body).toMatchObject({
-      message: ErrorMessage.DUTY_NOT_FOUND,
-      success: false,
-      data: null,
     });
   });
 });
@@ -70,6 +56,7 @@ describe("Create Duty", () => {
       data: {
         ...testDuty,
         id: resp.body.data.id,
+        created_at: expect.stringContaining("Z"),
       },
     });
 
@@ -89,7 +76,7 @@ describe("Create Duty", () => {
 
     const resp = await request(app).post("/duty").send(testDuty).expect(200);
 
-    await expect(resp.body).toEqual({
+    await expect(resp.body).toMatchObject({
       message: `name: String must contain at least ${Validation.DUTY_NAME_MIN_LEN} character(s)`,
       success: false,
       data: null,
@@ -114,12 +101,13 @@ describe("Update Duty", () => {
       })
       .expect(200);
 
-    await expect(resp.body).toEqual({
+    await expect(resp.body).toMatchObject({
       message: "",
       success: true,
       data: {
         id: result.id,
         name: newName,
+        created_at: expect.stringContaining("Z"),
       },
     });
   });
@@ -177,8 +165,6 @@ describe("Delete Duty", () => {
     ).rejects.toThrowError(db.$config.pgp.errors.QueryResultError);
   });
   it("should return error for invalid id", async () => {
-
-
     const resp = await request(app).delete(`/duty/123456`).expect(200);
 
     expect(resp.body).toMatchObject({
@@ -186,6 +172,16 @@ describe("Delete Duty", () => {
       success: false,
       data: null,
     });
+  });
 
+  it("should not return error for id not found", async () => {
+    const nonexistID = crypto.randomUUID();
+    const resp = await request(app).delete(`/duty/${nonexistID}`).expect(200);
+
+    await expect(resp.body).toMatchObject({
+      message: "",
+      success: true,
+      data: null,
+    });
   });
 });

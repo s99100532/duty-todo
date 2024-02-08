@@ -17,7 +17,7 @@ const schema = z.object({
   name: z.string().min(3),
 });
 
-
+const defaultValues = {name: ''}
 
 const DutyForm: React.FC<{
   data: Duty | undefined
@@ -38,33 +38,38 @@ const DutyForm: React.FC<{
     formState: { errors }
   } = useForm<Inputs>({
     resolver: zodResolver(schema),
-    defaultValues: { name: '' }
+    defaultValues
   })
 
   useEffect(() => {
-    reset(data)
-  }, [reset, data, mode])
+
+    reset(isCreate ? defaultValues : data)
+  }, [reset, data, isCreate])
 
 
   async function onSubmit(formData: z.infer<typeof schema>) {
-    const result = await (async () => {
-      if (isCreate) {
-        return fetcher.post("/duty", formData);
+    try {
+      const result = await (async () => {
+        if (isCreate) {
+          return fetcher.post("/duty", formData);
 
+        } else {
+          return fetcher.patch(`/duty/${data.id}`, formData)
+        }
+      })()
+
+      if (result.success) {
+        message.success("Success")
       } else {
-        return fetcher.patch(`/duty/${data.id}`, formData)
+        message.error(result.message)
       }
-    })()
 
-    if (result.success) {
-      message.success("Success")
-    } else {
-      message.error("Fail")
+
+      await mutate('/duties?pageSize=10');
+      resetPage()
+    } catch(error) {
+      message.error((error as Error).message)
     }
-
-
-    await mutate('/duties?pageSize=10');
-    resetPage()
 
   }
 
@@ -84,7 +89,7 @@ const DutyForm: React.FC<{
             <label style={{ paddingRight: 10 }} htmlFor="name">name</label>
             <input type="text" {...register("name")} />
           </Flex>
-          {errors.name && <Alert role="alert" message={errors.name.message} type="error" />}
+          {errors.name && <Alert role="alert" message={`name: ${errors.name.message}`} type="error" />}
         </div>
       </form>
     </Modal>

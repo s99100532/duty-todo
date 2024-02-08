@@ -2,10 +2,10 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
     "test": "jest",
-    "dev": "cross-env NODE_ENV=local ts-node src/server.ts"
+    "dev": "cross-env NODE_ENV=local ts-node src/server.ts",
+    "start:prod": "cross-env NODE_ENV=production ts-node --transpile-only src/server.ts"
   },
   "keywords": [],
   "author": "",

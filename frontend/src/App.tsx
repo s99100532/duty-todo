@@ -51,17 +51,25 @@ function App() {
   }
 
   const deleteItem = async (id: string) => {
-    const result = await fetcher.delete(`/duty/${id}`)
 
-    if (result.success) {
-      message.success("deleted")
-      await mutate('/duties?pageSize=10');
-    } else {
-      message.error(result.message)
+    try {
+      const result = await fetcher.delete(`/duty/${id}`)
+
+      if (result.success) {
+        message.success("deleted")
+        await mutate('/duties?pageSize=10');
+      } else {
+        message.error(result.message)
+      }
+    } catch(error) {
+      message.error((error as Error).message)
     }
+   
   }
 
   const { data, error, isLoading } = useSWR<APIResponse<PaginationData<Duty>>>('/duties?pageSize=10', fetcher.get)  
+
+  
 
   return (
     <AppContext.Provider value={{
@@ -79,9 +87,9 @@ function App() {
             <Flex justify="start" wrap="wrap" role="list">
               {
                 isLoading ? <Spin /> : (
-                  error || !data?.success
-                    ? (data ? data.message : error.message)
-                    : data?.data?.items.map(item => (<div key={item.id} style={{ margin: 10 }} role="listitem" className="duty-card">
+                  !data?.success
+                    ? (data?.message ? data.message : error.message)
+                    : data.data?.items.map(item => (<div key={item.id} style={{ margin: 10 }} role="listitem" className="duty-card">
                       <Card title={item.name}>
                         <Flex justify='center'>
                           <Button onClick={() => editItem(item)} type="primary">Edit</Button>
