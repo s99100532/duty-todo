@@ -1,6 +1,6 @@
 # Duty ToDo App
 
-A full stock application to perform CURD of duties. The respository is a monorepo that consist of two components: [frontend](./frontend) and [backend](./backend).
+A full stack application to perform CURD of duties. The respository is a monorepo that consist of two components: [frontend](./frontend) and [backend](./backend).
 
 ## Prerequisite
 
@@ -17,15 +17,23 @@ A full stock application to perform CURD of duties. The respository is a monorep
 cd backend
 ```
 
+```sh
+# pnpm can be replaced with any node package manager e.g. yarn, npm
+pnpm install
+```
+
 Start the postgres database using docker if not exists.
 
 ```sh
 docker compose up -d
 ```
 
+Update `database.json` for db migration
+
+Then, run the db migration for schema
+
 ```sh
-# pnpm can be replaced with any node package manager e.g. yarn, npm
-pnpm install
+pnpm db-migrate up
 ```
 
 ```sh
@@ -62,6 +70,6 @@ pnpm dev
 
 For more commands, please navigate to the corresponding component.
 
-
 ## How to use the application
+
 Refer to the [User Documentation](./doc/)
