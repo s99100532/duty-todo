@@ -1,5 +1,9 @@
-import { Duty } from "../../../shared/types";
 import pg from "pg-promise";
+import { Duty } from "../../../shared/types";
+
+const pgp = pg();
+
+const db = pgp("postgres://postgres:example@localhost:5432/postgres");
 
 type CreateDutyInput = {
   name: string;
@@ -8,49 +12,27 @@ type UpdateDutyInput = {
   name: string;
 };
 
-type ListDutyParams = {
-  cursor?: string;
-  pageSize: number;
-};
-
 class DutyRepository {
   tableName: string;
-  dbClient: pg.IDatabase<{}>;
-  constructor(db: pg.IDatabase<{}>) {
+  dbClient: typeof db;
+  constructor() {
     this.tableName = "duties";
     this.dbClient = db;
   }
 
-  async listDuties(params: ListDutyParams) {
-    const { cursor, pageSize } = params;
-
-    let stmt = "select * from duties";
-
-    const values: (string | number)[] = [];
-
-    if (cursor) {
-      stmt += " where id < $1";
-      values.push(cursor);
-    }
-
-    stmt += ` order by created_at desc limit ${cursor ? "$2" : "$1"}`;
-    values.push(pageSize);
-
-    const data = await this.dbClient.manyOrNone<Duty>(stmt, values);
+  async getDutyById(id: string) {
+    const data = await db.oneOrNone<Duty>("select * from duties where id = $1", id);
 
     return data;
   }
 
   async createDuty(data: CreateDutyInput) {
-    const { pgp } = this.dbClient.$config;
-
     try {
-      const stmt =
-        pgp.helpers.insert(data, null, this.tableName) + " RETURNING *";
+      const stmt = pgp.helpers.insert(data, null, this.tableName);
 
       const values = pgp.helpers.values(data);
 
-      const result = await this.dbClient.one<Duty>(stmt, values);
+      const result = await this.dbClient.one(stmt, values);
 
       return result;
     } catch (error) {
@@ -67,35 +49,15 @@ class DutyRepository {
   }
 
   async updateDuty(id: string, data: UpdateDutyInput) {
-    const { pgp } = this.dbClient.$config;
-
     try {
       const condition = pgp.as.format(" WHERE id = ${id} RETURNING *", {
         id,
       });
 
       const stmt = pgp.helpers.update(data, null, "duties") + condition;
-      const result = await this.dbClient.one(stmt, pgp.helpers.values(data));
+      const result = await db.one(stmt, pgp.helpers.values(data));
 
       return result;
-    } catch (error) {
-      if (error instanceof pgp.errors.QueryResultError && error.received == 0) {
-        return null;
-      } else if (
-        error instanceof pgp.errors.ParameterizedQueryError ||
-        error instanceof pgp.errors.PreparedStatementError
-      ) {
-        throw new Error(error.message);
-      } else {
-        throw new Error("unknown database error");
-      }
-    }
-  }
-  async deleteDuty(id: string) {
-    const { pgp } = this.dbClient.$config;
-
-    try {
-      return this.dbClient.none("DELETE FROM duties WHERE id = $1", id);
     } catch (error) {
       if (
         error instanceof pgp.errors.ParameterizedQueryError ||
@@ -105,6 +67,34 @@ class DutyRepository {
         throw new Error(error.message);
       } else {
         throw new Error("unknown database error");
+      }
+    }
+  }
+  async deleteDuty(id: string) {
+    try {
+      const result = (await db.one(
+        "WITH deleted AS (DELETE FROM duties WHERE id = $1 RETURNING *) SELECT count(*) FROM deleted",
+        id
+      )) as { count: string };
+
+      return result;
+    } catch (error) {
+      if (
+        error instanceof pgp.errors.ParameterizedQueryError ||
+        error instanceof pgp.errors.PreparedStatementError ||
+        error instanceof pgp.errors.QueryResultError
+      ) {
+        return {
+          message: error.message,
+          success: false,
+          data: null,
+        };
+      } else {
+        return {
+          message: "unknown database error",
+          success: false,
+          data: null,
+        };
       }
     }
   }

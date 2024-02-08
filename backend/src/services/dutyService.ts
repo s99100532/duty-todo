@@ -1,15 +1,21 @@
+import { Validation } from "../contants";
 import DutyRepository from "../repositories/dutyRepository";
 import z from "zod";
 
 export class ValidationError extends Error {
   constructor(message: string) {
-    super(message); // (1)
-    this.name = "ValidationError"; // (2)
+    super(message);
+    this.name = "ValidationError";
   }
 }
 
 const CreateDutyPayload = z.object({
-  name: z.string().min(3),
+  name: z.string().min(Validation.DUTY_NAME_MIN_LEN),
+});
+
+const ListDutyPaylad = z.object({
+  cursor: z.string().uuid().optional(),
+  pageSize: z.coerce.number().min(1).max(30),
 });
 
 const UpdateDutyPayload = z
@@ -23,19 +29,25 @@ class DutyService {
   constructor(repository: DutyRepository) {
     this.dutyRepository = repository;
   }
-  getDutyById(id: string) {
-    const zresult = z.string().uuid().safeParse(id);
+  async listDuties(payload: unknown) {
+    const zresult = ListDutyPaylad.safeParse(payload);
 
     if (!zresult.success) {
-      console.log(zresult.error.issues);
-
       throw new ValidationError(
         zresult.error.issues
           .map(({ path, message }) => `${path}: ${message}`)
           .join(",")
       );
     }
-    return this.dutyRepository.getDutyById(id);
+
+    const duties = await this.dutyRepository.listDuties(zresult.data);
+
+    return {
+      items: duties,
+      pagination: {
+        cursor: duties.length > 0 ? duties[duties.length - 1].id : null,
+      },
+    };
   }
   createDuty(payload: unknown) {
     const zresult = CreateDutyPayload.safeParse(payload);

@@ -10,7 +10,7 @@ const config: Config = {
   // automock: false,
 
   // Stop running tests after `n` failures
-  // bail: 0,
+  bail: 1,
 
   // The directory where Jest should store its cached dependency information
   // cacheDirectory: "/private/var/folders/96/blqprkvd3f76khpznv7lzk0r0000gn/T/jest_dx",
@@ -19,13 +19,13 @@ const config: Config = {
   clearMocks: true,
 
   // Indicates whether the coverage information should be collected while executing the test
-  collectCoverage: true,
+  // collectCoverage: false,
 
   // An array of glob patterns indicating a set of files for which coverage information should be collected
   // collectCoverageFrom: undefined,
 
   // The directory where Jest should output its coverage files
-  coverageDirectory: "coverage",
+  // coverageDirectory: undefined,
 
   // An array of regexp pattern strings used to skip coverage collection
   // coveragePathIgnorePatterns: [
@@ -102,7 +102,7 @@ const config: Config = {
   // notifyMode: "failure-change",
 
   // A preset that is used as a base for Jest's configuration
-  // preset: undefined,
+  preset: "ts-jest/presets/js-with-ts-esm",
 
   // Run tests from one or more projects
   // projects: undefined,
@@ -111,16 +111,16 @@ const config: Config = {
   // reporters: undefined,
 
   // Automatically reset mock state before every test
-  // resetMocks: false,
+  resetMocks: true,
 
   // Reset the module registry before running each individual test
-  // resetModules: false,
+  resetModules: true,
 
   // A path to a custom resolver
   // resolver: undefined,
 
   // Automatically restore mock state and implementation before every test
-  // restoreMocks: false,
+  restoreMocks: true,
 
   // The root directory that Jest should scan for tests and modules within
   // rootDir: undefined,
@@ -194,6 +194,7 @@ const config: Config = {
 
   // Whether to use watchman for file crawling
   // watchman: true,
+  // extensionsToTreatAsEsm: [".ts", ".tsx"],
 };
 
 export default config;

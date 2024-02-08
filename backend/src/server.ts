@@ -1,10 +1,13 @@
-import express from "express";
 import { config } from "dotenv";
+import express from "express";
+import pg from "pg-promise";
 import { z } from "zod";
+import { ErrorMessage } from "./contants";
 import DutyRepository from "./repositories/dutyRepository";
 import DutyService, { ValidationError } from "./services/dutyService";
-import { ErrorMessage } from "./contants";
-import { APIResponse } from "./types";
+import { APIResponse } from "../../shared/types";
+import initLog from "pino";
+import cors from "cors";
 
 config({
   path: ".env." + process.env.NODE_ENV,
@@ -13,18 +16,26 @@ config({
 const app = express();
 
 app.use(express.json());
+app.use(cors());
 
 const envSchema = z.object({
   PORT: z.coerce.number().min(0).max(65536),
+  DB_URL: z.string().min(1),
 });
 
-envSchema.parse({
+const values = envSchema.parse({
   PORT: process.env.PORT || "-1",
+  DB_URL: process.env.DB_URL,
 });
 
-const port = process.env.PORT;
+const port = values.PORT;
 
-const dutyRepository = new DutyRepository();
+const pgp = pg();
+const db = pgp(values.DB_URL);
+
+const logger = initLog();
+
+const dutyRepository = new DutyRepository(db);
 
 const dutyService = new DutyService(dutyRepository);
 
@@ -53,10 +64,13 @@ app.post("/duty", async (req, res) => {
   res.json(resp);
 });
 
-app.get("/duty/:id", async (req, res) => {
+app.get("/duties", async (req, res) => {
   const resp: APIResponse = await (async () => {
     try {
-      const data = await dutyService.getDutyById(req.params.id);
+      const data = await dutyService.listDuties({
+        pageSize: req.query.pageSize,
+        cursor: req.query.cursor,
+      });
       if (!data) {
         return {
           message: ErrorMessage.DUTY_NOT_FOUND,
@@ -74,7 +88,7 @@ app.get("/duty/:id", async (req, res) => {
       return {
         message:
           error instanceof ValidationError
-            ? ErrorMessage.INVALID_ID
+            ? error.message
             : ErrorMessage.UNKNOWN_ERROR,
         success: false,
         data: null,
@@ -92,6 +106,14 @@ app.patch("/duty/:id", async (req, res) => {
   const resp: APIResponse = await (async () => {
     try {
       const duty = await dutyService.updateDuty(updateID, payload);
+
+      if (!duty) {
+        return {
+          message: ErrorMessage.DUTY_NOT_FOUND,
+          success: false,
+          data: null,
+        };
+      }
 
       return {
         message: "",
@@ -126,7 +148,9 @@ app.delete("/duty/:id", async (req, res) => {
     } catch (error) {
       return {
         message:
-          error instanceof Error ? error.message : ErrorMessage.UNKNOWN_ERROR,
+          error instanceof ValidationError
+            ? ErrorMessage.INVALID_ID
+            : ErrorMessage.UNKNOWN_ERROR,
         success: false,
         data: null,
       };
@@ -136,6 +160,8 @@ app.delete("/duty/:id", async (req, res) => {
   res.json(resp);
 });
 
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+const server = app.listen(port, () => {
+  logger.info(`listening on ${port}`);
 });
+
+export { app, db, server };
