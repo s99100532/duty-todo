@@ -6,8 +6,8 @@ import { ErrorMessage } from "./contants";
 import DutyRepository from "./repositories/dutyRepository";
 import DutyService, { ValidationError } from "./services/dutyService";
 import { APIResponse } from "../../shared/types";
-import initLog from "pino";
 import cors from "cors";
+import logger from "./logger";
 
 config({
   path: ".env." + process.env.NODE_ENV,
@@ -16,7 +16,10 @@ config({
 const app = express();
 
 app.use(express.json());
-app.use(cors());
+
+if (process.env.NODE_ENV != "production") {
+  app.use(cors());
+}
 
 const envSchema = z.object({
   PORT: z.coerce.number().min(0).max(65536),
@@ -32,8 +35,6 @@ const port = values.PORT;
 
 const pgp = pg();
 const db = pgp(values.DB_URL);
-
-const logger = initLog();
 
 const dutyRepository = new DutyRepository(db);
 
@@ -52,6 +53,7 @@ app.post("/duty", async (req, res) => {
         data: duty,
       };
     } catch (error) {
+      logger.error(error);
       return {
         message:
           error instanceof Error ? error.message : ErrorMessage.UNKNOWN_ERROR,
@@ -85,6 +87,8 @@ app.get("/duties", async (req, res) => {
         };
       }
     } catch (error) {
+      logger.error(error);
+      logger.error(error);
       return {
         message:
           error instanceof ValidationError
@@ -121,6 +125,7 @@ app.patch("/duty/:id", async (req, res) => {
         data: duty,
       };
     } catch (error) {
+      logger.error(error);
       return {
         message:
           error instanceof Error ? error.message : ErrorMessage.UNKNOWN_ERROR,
@@ -146,6 +151,7 @@ app.delete("/duty/:id", async (req, res) => {
         message: "",
       };
     } catch (error) {
+      logger.error(error);
       return {
         message:
           error instanceof ValidationError

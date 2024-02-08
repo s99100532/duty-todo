@@ -1,5 +1,6 @@
 import { Duty } from "../../../shared/types";
 import pg from "pg-promise";
+import logger from "../logger";
 
 type CreateDutyInput = {
   name: string;
@@ -54,6 +55,7 @@ class DutyRepository {
 
       return result;
     } catch (error) {
+      logger.error(error);
       if (
         error instanceof pgp.errors.ParameterizedQueryError ||
         error instanceof pgp.errors.PreparedStatementError ||
@@ -79,6 +81,7 @@ class DutyRepository {
 
       return result;
     } catch (error) {
+      logger.error(error);
       if (error instanceof pgp.errors.QueryResultError && error.received == 0) {
         return null;
       } else if (
@@ -97,6 +100,7 @@ class DutyRepository {
     try {
       return this.dbClient.none("DELETE FROM duties WHERE id = $1", id);
     } catch (error) {
+      logger.error(error);
       if (
         error instanceof pgp.errors.ParameterizedQueryError ||
         error instanceof pgp.errors.PreparedStatementError ||
