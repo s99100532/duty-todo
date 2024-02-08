@@ -17,7 +17,7 @@ const schema = z.object({
   name: z.string().min(3),
 });
 
-const defaultValues = {name: ''}
+const defaultValues = { name: '' }
 
 const DutyForm: React.FC<{
   data: Duty | undefined
@@ -42,9 +42,13 @@ const DutyForm: React.FC<{
   })
 
   useEffect(() => {
-
-    reset(isCreate ? defaultValues : data)
-  }, [reset, data, isCreate])
+    // We will not unmount the form after form submit but only reset it
+    if (mode == 'view') {
+      reset()
+    } else {
+      reset(isCreate ? defaultValues : data)
+    }
+  }, [reset, data, isCreate, mode])
 
 
   async function onSubmit(formData: z.infer<typeof schema>) {
@@ -67,7 +71,7 @@ const DutyForm: React.FC<{
 
       await mutate('/duties?pageSize=10');
       resetPage()
-    } catch(error) {
+    } catch (error) {
       message.error((error as Error).message)
     }
 
