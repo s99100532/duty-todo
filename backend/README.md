@@ -37,9 +37,11 @@ pnpm dev
 
 ## Test the application
 
-1. Start the postgres database for testing. (Use [this](./docker-compose.yaml) if docker installed)
-2. update `.env.test` for the testing database
-3. Run `pnpm test`.
+1. Create a postgres schema for testing since the test will truncate the tables after test. (Use [this](./docker-compose.yaml) if docker installed)
+2. update `database.json` to migrate testing schema.
+3. Run `pnpm run db-migrate` 
+4. Update `.env.test` for the testing database
+5. Run `pnpm test`.
    ![image](./test.png)
 
 ## Start for production

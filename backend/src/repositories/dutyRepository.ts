@@ -33,7 +33,7 @@ class DutyRepository {
       values.push(cursor);
     }
 
-    stmt += ` order by created_at desc limit ${cursor ? "$2" : "$1"}`;
+    stmt += ` order by id desc limit ${cursor ? "$2" : "$1"}`;
     values.push(pageSize);
 
     const data = await this.dbClient.manyOrNone<Duty>(stmt, values);

@@ -11,6 +11,7 @@ const generateSeeds = () => {
 };
 
 afterAll(async () => {
+  await db.none("TRUNCATE TABLE duties")
   await db.$pool.end();
   server.close();
 });

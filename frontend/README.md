@@ -8,7 +8,7 @@
 
 
 ## Testing the frontend
-The test casesm will use DOM to test the component instead of using e2e testing tool like Cypress. 
+The test casesm will use DOM to test the component with mocked API response instead of using e2e testing tool like Cypress. 
 1. Run `pnpm test`
 
 ![alt text](image.png)
