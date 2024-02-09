@@ -1,75 +1,87 @@
 # Duty ToDo App
 
-A full stack application to perform CURD of duties. The respository is a monorepo that consist of two components: [frontend](./frontend) and [backend](./backend).
+Duty ToDo App is a full-stack application that allows you to perform CRUD operations on duties. The repository is structured as a monorepo, consisting of two components: frontend and backend.
 
-## Prerequisite
+## Prerequisites
+
+Before getting started, make sure you have the following prerequisites installed:
 
 - NodeJS >= 18
-- pnpm installed for the workspace feature (Optional)
-- PostgreSQL installed or Docker installed
+- pnpm (optional, but recommended for workspace feature)
+- PostgreSQL or Docker
 
-## Getting started
+## Getting Started
 
-### 1. Start the backend
+Follow the steps below to start using the Duty ToDo App:
+
+### 1. Start the Backend
+
+Navigate to the backend directory:
 
 ```sh
-# Please ensure you are in respository root
 cd backend
 ```
 
+Install the dependencies using your preferred package manager (e.g., pnpm, yarn, or npm):
+
 ```sh
-# pnpm can be replaced with any node package manager e.g. yarn, npm
 pnpm install
 ```
 
-Start the postgres database using docker if not exists.
+If the PostgreSQL database is not already running, start it using Docker:
 
 ```sh
 docker compose up -d
 ```
 
-Update `database.json` for db migration
+Update the `database.json` file for database migration.
 
-Then, run the db migration for schema
+Run the database migration to set up the schema:
 
 ```sh
 pnpm db-migrate up
 ```
 
+Create a file for environment variable injection during development:
+
 ```sh
-# create file for enironment variable injection for development
 cp .env.example .env.local
 ```
+
+Start the backend server:
 
 ```sh
 pnpm dev
 ```
 
-### 2. Start the frontend
+### 2. Start the Frontend
 
-Then, Open another terminal window.
+Open another terminal window and navigate to the frontend directory:
 
 ```sh
-# Please ensure you are in respository root
 cd frontend
 ```
 
+Install the dependencies using your preferred package manager:
+
 ```sh
-# pnpm can be replaced with any node package manager e.g. yarn, npm
 pnpm install
 ```
 
+Create a file for environment variable injection during development:
+
 ```sh
-# create file for enironment variable injection for development
 cp .env.example .env.local
 ```
+
+Start the frontend development server:
 
 ```sh
 pnpm dev
 ```
 
-For more commands, please navigate to the corresponding component.
+For more commands and information, please refer to the corresponding component's documentation.
 
-## How to use the application
+## How to Use the Application
 
-Refer to the [User Documentation](./doc/)
+For instructions on how to use the application, please refer to the User Documentation located in the "doc" directory.
